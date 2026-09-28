@@ -1,0 +1,35 @@
+# ==============================================================================
+# .gitignore para Repositorio Colaborativo de Visión por Computador (Obsidian)
+# ==============================================================================
+
+# --- Obsidian: Estado local de interfaz (evitar conflictos de Git entre usuarios) ---
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/.trash/
+.obsidian/cache/
+
+# --- PDFs de Libros de Texto (pesados y sujetos a copyright; se descargan en local) ---
+docs_clase/textBook/*.pdf
+
+# --- Libros procesados en Markdown e Imágenes (se generan on-the-fly con ./setup.sh) ---
+docs_clase/textBook/Szeliski/
+docs_clase/textBook/Forsyth_Ponce/
+docs_clase/textBook/Hartley_Zisserman/
+docs_clase/textBook/Prince_UDL/
+docs_clase/textBook/Torralba_Foundations/
+docs_clase/textBook/Matrix_Calculus/
+docs_clase/textBook/*_extracted/
+
+# --- Base de Datos Vectorial Local (LanceDB; se reconstruye on-the-fly) ---
+.agents/skills/vc-textbook-rag/data/lancedb/
+
+# --- Entornos Virtuales y Cachés ---
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.cache/
+
+# --- Archivos de sistema operativo ---
+.DS_Store
+Thumbs.db

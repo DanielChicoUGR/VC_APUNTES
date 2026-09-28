@@ -1,0 +1,76 @@
+{
+  "curated_collection": "Visión por Computador - Colección Canónica",
+  "books": [
+    {
+      "id": "szeliski",
+      "title": "Computer Vision: Algorithms and Applications",
+      "edition": "2nd Edition (2022)",
+      "author": "Richard Szeliski",
+      "category": "Visión Clásica y Geometría",
+      "type": "pdf",
+      "url": "https://cv2.csie.ntu.edu.tw/CV2/2023/textbook.pdf",
+      "filename": "Szeliski_Computer_Vision_2022.pdf",
+      "folder": "Szeliski",
+      "parser": "szeliski"
+    },
+    {
+      "id": "forsyth",
+      "title": "Computer Vision: A Modern Approach",
+      "edition": "2nd Edition (2012)",
+      "author": "David Forsyth & Jean Ponce",
+      "category": "Visión Clásica y Geometría",
+      "type": "pdf",
+      "url": "https://eclass.hmu.gr/modules/document/file.php/TM152/Books/Computer%20Vision%20-%20A%20Modern%20Approach%20-%20D.%20Forsyth%2C%20J.%20Ponce.pdf",
+      "filename": "Forsyth_Ponce_Computer_Vision_2012.pdf",
+      "folder": "Forsyth_Ponce",
+      "parser": "forsyth"
+    },
+    {
+      "id": "hartley_zisserman",
+      "title": "Multiple View Geometry in Computer Vision",
+      "edition": "2nd Edition (2011)",
+      "author": "Richard Hartley & Andrew Zisserman",
+      "category": "Visión Clásica y Geometría",
+      "type": "pdf",
+      "url": "https://www.r-5.org/files/books/computers/algo-list/image-processing/vision/Richard_Hartley_Andrew_Zisserman-Multiple_View_Geometry_in_Computer_Vision-EN.pdf",
+      "filename": "Hartley_Zisserman_Multiple_View_Geometry_2011.pdf",
+      "folder": "Hartley_Zisserman",
+      "parser": "generic"
+    },
+    {
+      "id": "prince_udl",
+      "title": "Understanding Deep Learning",
+      "edition": "MIT Press (2023)",
+      "author": "Simon J.D. Prince",
+      "category": "Deep Learning y Visión Moderna",
+      "type": "pdf",
+      "url": "https://github.com/udlbook/udlbook/releases/download/v5.0.3/UnderstandingDeepLearning_02_09_26_C.pdf",
+      "filename": "Simon_Prince_Understanding_Deep_Learning_2023.pdf",
+      "folder": "Prince_UDL",
+      "parser": "generic"
+    },
+    {
+      "id": "torralba_visionbook",
+      "title": "Foundations of Computer Vision",
+      "edition": "MIT Press (2024)",
+      "author": "Antonio Torralba, Phillip Isola & William T. Freeman",
+      "category": "Deep Learning y Visión Moderna",
+      "type": "github_quarto",
+      "repo_zip_url": "https://github.com/Foundations-of-Computer-Vision/visionbook/archive/refs/heads/main.zip",
+      "folder": "Torralba_Foundations",
+      "parser": "quarto_markdown"
+    },
+    {
+      "id": "matrix_calculus",
+      "title": "Matrix Calculus (for Machine Learning and Beyond)",
+      "edition": "arXiv (2025)",
+      "author": "Paige Bright, Alan Edelman & Steven G. Johnson",
+      "category": "Fundamentos Matemáticos",
+      "type": "pdf",
+      "url": "https://arxiv.org/pdf/2501.14787",
+      "filename": "Matrix_Calculus_Bright_Edelman_2025.pdf",
+      "folder": "Matrix_Calculus",
+      "parser": "generic"
+    }
+  ]
+}
