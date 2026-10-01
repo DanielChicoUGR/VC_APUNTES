@@ -63,3 +63,4 @@ Usa los bloques nativos para destacar información relevante:
 * 🧪 **Código reproducible:** Fragmentos breves y claros en Python con OpenCV o NumPy.
 * 🎯 **Exámenes y ejercicios resueltos:** Preguntas teóricas de años anteriores explicadas con rigor.
 * 📚 **Nuevas referencias:** Artículos clave o tutoriales recomendados.
+* 📚 **Mejoras en la busqueda semántica:** Mejoras en los scripts de consulta, descarga o instrucciones para el agente.

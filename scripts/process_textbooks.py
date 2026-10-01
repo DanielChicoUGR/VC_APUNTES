@@ -251,11 +251,11 @@ def process_pdf_book(book: dict, target_chapter=None, force=False, extract_image
     author = book["author"]
     parser_type = book.get("parser", "generic")
 
-    print(f"\n=======================================================")
+    print("\n=======================================================")
     print(f"📖 Procesando PDF: {book_name} ({author})")
     print(f"   Archivo: {pdf_path.name}")
     print(f"   Destino: {out_dir}")
-    print(f"=======================================================")
+    print("=======================================================")
 
     if not pdf_path.exists():
         print(f"⚠️ Aviso: Archivo PDF no encontrado: {pdf_path}. Omitiendo hasta su descarga.")
@@ -327,8 +327,8 @@ def process_pdf_book(book: dict, target_chapter=None, force=False, extract_image
                 f"# {c_title}\n",
                 f"> **Libro:** {book_name}  ",
                 f"> **Autor:** {author}  ",
-                f"> **Páginas en PDF:** {chap['start_page']} – {chap['end_page']}  ",
-                f"> **Navegación:** [Índice General](../_INDEX.md)\n",
+                f"> **Páginas en PDF:** {chap['start_page']} - {chap['end_page']}  ",
+                "> **Navegación:** [Índice General](../_INDEX.md)\n",
                 "## Secciones del Capítulo\n",
             ]
 
@@ -336,7 +336,7 @@ def process_pdf_book(book: dict, target_chapter=None, force=False, extract_image
                 for s in chap['sections']:
                     s_slug = slugify(s['title'])
                     s_filename = f"{s_slug}.md"
-                    overview_lines.append(f"- [{s['title']}](./{s_filename}) *(págs. {s['start_page']}–{s['end_page']})*")
+                    overview_lines.append(f"- [{s['title']}](./{s_filename}) *(págs. {s['start_page']}-{s['end_page']})*")
             else:
                 overview_lines.append("*(Capítulo sin subsecciones; contenido en el archivo principal).*")
 
@@ -360,9 +360,9 @@ def process_pdf_book(book: dict, target_chapter=None, force=False, extract_image
 
             with open(overview_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(overview_lines))
-            print(f"   ✓ Creado: 00_Overview.md")
+            print("   ✓ Creado: 00_Overview.md")
         else:
-            print(f"   ⏩ Omitido (ya existe): 00_Overview.md")
+            print("   ⏩ Omitido (ya existe): 00_Overview.md")
 
         # Sections
         for s_idx, sec in enumerate(chap['sections']):
@@ -415,7 +415,7 @@ def process_pdf_book(book: dict, target_chapter=None, force=False, extract_image
 
                 with open(sec_path, "w", encoding="utf-8") as f:
                     f.write("\n".join(sec_lines))
-                print(f"   ✓ Creado: {sec_path.name} (págs. {sec['start_page']}–{sec['end_page']})")
+                print(f"   ✓ Creado: {sec_path.name} (págs. {sec['start_page']}-{sec['end_page']})")
             except Exception as e:
                 print(f"   ❌ Error en sección {s_title}: {e}")
 
@@ -433,11 +433,11 @@ def process_pdf_book(book: dict, target_chapter=None, force=False, extract_image
     for chap in chapters:
         chap_slug = slugify(chap['title'])
         overview_rel = f"{chap_slug}/00_Overview.md"
-        index_lines.append(f"\n### [{chap['title']}]({overview_rel}) *(págs. {chap['start_page']}–{chap['end_page']})*")
+        index_lines.append(f"\n### [{chap['title']}]({overview_rel}) *(págs. {chap['start_page']}-{chap['end_page']})*")
         for sec in chap['sections']:
             sec_slug = slugify(sec['title'])
             sec_rel = f"{chap_slug}/{sec_slug}.md"
-            index_lines.append(f"- [{sec['title']}]({sec_rel}) *(págs. {sec['start_page']}–{sec['end_page']})*")
+            index_lines.append(f"- [{sec['title']}]({sec_rel}) *(págs. {sec['start_page']}-{sec['end_page']})*")
 
     with open(index_path, "w", encoding="utf-8") as f:
         f.write("\n".join(index_lines))
@@ -452,11 +452,11 @@ def process_quarto_repo(book: dict, force=False):
     author = book["author"]
     repo_name = "Foundations-of-Computer-Vision/visionbook"
 
-    print(f"\n=======================================================")
+    print("\n=======================================================")
     print(f"🌐 Procesando Repositorio Quarto/Markdown: {book_name}")
     print(f"   Repositorio GitHub: {repo_name}")
     print(f"   Destino: {out_dir}")
-    print(f"=======================================================")
+    print("=======================================================")
 
     if out_dir.exists() and not force and (out_dir / "_INDEX.md").exists():
         print(f"⏩ Omitido: {book_name} ya está procesado.")
@@ -486,7 +486,7 @@ def process_quarto_repo(book: dict, force=False):
     index_lines = [
         f"# Índice General: {book_name}",
         f"**Autores:** {author}  ",
-        f"**Formato:** Quarto Book / Markdown (MIT Press 2024)\n",
+        "**Formato:** Quarto Book / Markdown (MIT Press 2024)\n",
         "> [!tip] Capítulos de Visión Moderna y Deep Learning",
         "> Contenido oficial extraído en formato Markdown nativo con ecuaciones KaTeX.\n",
         "## Capítulos y Secciones\n"
@@ -526,7 +526,7 @@ def process_quarto_repo(book: dict, force=False):
                 f"# {title}\n",
                 f"> **Libro:** {book_name}  ",
                 f"> **Autores:** {author}  ",
-                f"> **Navegación:** [Índice General](./_INDEX.md)\n",
+                "> **Navegación:** [Índice General](./_INDEX.md)\n",
                 "---\n"
             ]
             out_file.write_text("\n".join(frontmatter) + content, encoding="utf-8")
