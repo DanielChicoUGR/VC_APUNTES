@@ -78,7 +78,7 @@ Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matem�
 
 ---
 
-### 🔴 Directiva 2: Obligatoriedad de Referencias Bibliográficas
+### 🔴 Directiva 2: Obligatoriedad de Referencias Bibliográficas y Formato de Enlaces
 
 **TODA respuesta generada por el agente debe ir rigurosamente acompañada de referencias bibliográficas precisas y formales.**
 
@@ -88,18 +88,21 @@ Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matem�
   2. **Título de la obra:** En cursiva con indicación de edición o año (ej. *Computer Vision: Algorithms and Applications (2nd Edition, 2022)*).
   3. **Capítulo y Sección:** Nombre y número exacto del capítulo/sección de donde procede la información.
   4. **Páginas / Ubicación:** Páginas del PDF si constan en los metadatos.
-  5. **Ruta del archivo en el Vault:** Enlace en formato markdown al archivo modular del libro (ej. `[Szeliski - Chapter 3](file:///.../docs_clase/textBook/Szeliski/...)`).
+  5. **Archivo local según el entorno:**
+     * **En apuntes del Vault (`.md`):** Usar **exclusivamente Wikilinks de Obsidian** (`[[docs_clase/textBook/...|Texto]]`). Queda terminantemente prohibido usar rutas absolutas (`file:///...` o `/home/...`) en los archivos markdown del repositorio.
+     * **En Pull Requests / GitHub:** Usar **enlaces Markdown estándar relativos** (`[Texto](docs_clase/textBook/...)`).
+     * **En Chat interactivo con el usuario (IDE):** Usar **enlaces Markdown estándar con `file:///`** (`[Texto](file:///ruta/absoluta/...)`) para que el IDE los vuelva clicables.
 
-#### Plantilla estándar de citación:
+#### Plantilla estándar de citación en notas del Vault:
 ```markdown
 ### 📚 Referencias Bibliográficas
 
 - **Szeliski, Richard** (2022). *Computer Vision: Algorithms and Applications* (2nd ed.).
   - **Capítulo / Sección:** Chapter 3: Image processing $\to$ Section 3.3.1: *Bilateral filter*.
-  - **Archivo local:** [`docs_clase/textBook/Szeliski/Chapter_03_Image_processing/03.3_Neighborhood_operators.md`](docs_clase/textBook/Szeliski/Chapter_03_Image_processing/03.3_Neighborhood_operators.md)
+  - **Archivo local:** [[docs_clase/textBook/Szeliski/Chapter_3_Image_processing/3.3_Neighborhood_operators.md|Szeliski - Chapter 3.3 Neighborhood operators]]
 - **Torralba, Antonio; Isola, Phillip; Freeman, William T.** (2024). *Foundations of Computer Vision*. MIT Press.
   - **Capítulo / Sección:** Filter Banks $\to$ *Steerable Quadrature Pairs*.
-  - **Archivo local:** [`docs_clase/textBook/Torralba_Foundations/spatial_filter_sets.md`](docs_clase/textBook/Torralba_Foundations/spatial_filter_sets.md)
+  - **Archivo local:** [[docs_clase/textBook/Torralba_Foundations/spatial_filter_sets.md|Torralba - Spatial Filter Sets]]
 ```
 
 ---
@@ -117,26 +120,28 @@ flowchart TD
     E --> C
     D -- Sí --> F[Inspeccionar archivo modular con view_file si se requiere contexto]
     F --> G[Sintetizar respuesta con rigor matemático y formato Obsidian]
-    G --> H[Incluir sección obligatoria de Referencias Bibliográficas]
+    G --> H[Incluir sección obligatoria de Referencias Bibliográficas con Wikilinks]
     H --> I[Entregar respuesta al usuario]
 ```
 
 1. **Recepción e Identificación:** Extraer las entidades matemáticas y algorítmicas clave tanto en español como en inglés (p. ej. *filtro bilateral* $\leftrightarrow$ *bilateral filter*, *geometría epipolar* $\leftrightarrow$ *epipolar geometry*).
 2. **Consulta Vectorial:** Ejecutar `query.py` con `--top-k 4 --json` a través de `uv run`.
 3. **Profundización Documental:** Si los fragmentos devueltos requieren mayor contexto (deducciones paso a paso, gráficas o tablas), examinar el archivo Markdown modular mediante `view_file`.
-4. **Redacción según el Canal (Apuntes vs. Chat/PRs):**
-   * **En apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usar sintaxis nativa de Obsidian (KaTeX con leyenda en callout `> [!info]`, callouts en minúsculas como `[!info]`, `[!tip]`, `[!example]`, diagramas Mermaid).
-   * **En respuestas del Chat o descripción de PRs:** Usar exclusivamente GitHub Flavored Markdown (GFM Alerts: `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`). No usar callouts de Obsidian (`[!info]`, `[!example]`, etc.) en el chat ni en PRs.
+4. **Redacción según el Canal (Apuntes vs. GitHub/PRs vs. Chat):**
+   * **En apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usar sintaxis nativa de Obsidian (KaTeX con leyenda en callout `> [!info]`, callouts en minúsculas como `[!info]`, `[!tip]`, `[!example]`, diagramas Mermaid, y **Wikilinks nativos de Obsidian `[[...]]`** para enlaces internos y bibliografía).
+   * **En descripciones de PRs, Issues y comentarios en GitHub:** Usar exclusivamente GitHub Flavored Markdown (GFM Alerts: `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) y **enlaces Markdown estándar relativos `[Texto](ruta/relativa)`**. Nunca usar Wikilinks `[[...]]` en GitHub.
+   * **En respuestas del Chat en el IDE:** Usar GFM Alerts (`[!NOTE]`, `[!TIP]`, etc.) y **enlaces Markdown estándar con `file:///`** para volver clicables los archivos en el editor.
 5. **Cierre con Bibliografía:** Cerrar obligatoriamente con el bloque de referencias bibliográficas detallado.
 
 ---
 
-## 5. Estándares de Estilo y Formato: Obsidian (Apuntes) vs. GitHub (Chat y PRs)
+## 5. Estándares de Estilo y Formato: Obsidian (Apuntes) vs. GitHub vs. Chat
 
 > [!IMPORTANT]
-> **Regla de Ámbito para Callouts:**
-> * **Apuntes del Vault (`Tema 1/` ... `Tema 5/`):** Los callouts con formato Obsidian (`[!info]`, `[!tip]`, `[!warning]`, `[!example]`, etc.) van **única y exclusivamente** en los apuntes del Vault.
-> * **Respuestas por Chat y Pull Requests (PRs):** Deberá usarse obligatoriamente el formato nativo de **GitHub Markdown (GFM Alerts)** en mayúsculas (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`). Nunca usar callouts de Obsidian en el chat o en PRs.
+> **Regla de Ámbito para Callouts y Enlaces:**
+> * **Apuntes del Vault (`Tema 1/` ... `Tema 5/`):** Los callouts de Obsidian (`[!info]`, `[!tip]`, `[!warning]`, `[!example]`) y los **Wikilinks `[[...]]`** van **única y exclusivamente** en los apuntes del Vault.
+> * **Pull Requests (PRs), Issues y comentarios en GitHub:** Usar obligatoriamente **GFM Alerts** (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) y **enlaces Markdown estándar relativos `[Texto](ruta/relativa)`**.
+> * **Respuestas en Chat (IDE):** Usar **GFM Alerts** y enlaces Markdown estándar con esquema **`file:///`**.
 
 Cuando el agente redacte o edite notas en `Tema 1/` ... `Tema 5/`, debe seguir las normas acordadas en [CONTRIBUTING.md](CONTRIBUTING.md):
 
@@ -166,6 +171,16 @@ Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el con
 
 ### C. Diagramas Mermaid
 * No insertar imágenes binarias si el concepto puede explicarse con un diagrama `mermaid` (`graph TD`, `flowchart LR`, etc.).
+
+### D. Formato de Enlaces según el Entorno (Obsidian vs. GitHub vs. Chat)
+
+| Entorno | Formato de Enlace | Sintaxis | Ejemplo | Motivo |
+| :--- | :--- | :--- | :--- | :--- |
+| **Apuntes del Vault (`Tema 1/` ... `Tema 5/`)** | **Wikilinks de Obsidian** | `[[Ruta/Relativa/Nota\|Texto]]` | `[[Tema 2/1. Representacion y Filtrado\|1. Filtrado]]` | Integración con el grafo, enlaces bidireccionales y navegación nativa de Obsidian. |
+| **GitHub (PRs, Issues, Comentarios)** | **Markdown Estándar Relativo** | `[Texto](ruta/relativa.md)` | `[1. Filtrado](Tema%202/1.%20Representacion%20y%20Filtrado.md)` | GitHub en la web no resuelve wikilinks `[[...]]`; requiere enlaces Markdown estándar. |
+| **Chat de Asistentes IA (IDE)** | **Markdown Estándar con `file:///`** | `[Texto](file:///ruta/absoluta.md)` | `[1. Filtrado](file:///home/.../Tema%202/1.md)` | Requerido por el harness del editor para abrir el archivo directamente en el IDE al hacer clic. |
+
+* **Prohibición de rutas absolutas en archivos del repositorio:** Ningún archivo markdown del repositorio debe contener rutas absolutas (`file:///...` o `/home/...`). Todos los enlaces dentro del vault deben ser relativos mediante Wikilinks para garantizar portabilidad universal.
 
 ---
 

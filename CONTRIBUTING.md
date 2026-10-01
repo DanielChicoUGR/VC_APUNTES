@@ -29,8 +29,8 @@ Para mantener la estética limpia y garantizar que el contenido se renderice cor
 
 > [!IMPORTANT]
 > **Separación de Formatos según el Destino:**
-> * **Apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usan la sintaxis nativa de **Obsidian Callouts** (`[!info]`, `[!tip]`, `[!warning]`, `[!example]`, etc.).
-> * **Pull Requests (PRs), Issues y respuestas de Chat:** Deben usar **exclusivamente GitHub Flavored Markdown (GFM) Alerts** en mayúsculas (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`). Queda prohibido usar callouts de Obsidian como `[!info]` en PRs o chat porque se visualizan rotos en GitHub.
+> * **Apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usan la sintaxis nativa de **Obsidian Callouts** (`[!info]`, `[!tip]`, `[!warning]`, `[!example]`, etc.) y **enlaces nativos de Obsidian (Wikilinks `[[...]]`)**.
+> * **Pull Requests (PRs), Issues y respuestas de Chat:** Deben usar **exclusivamente GitHub Flavored Markdown (GFM) Alerts** en mayúsculas (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) y enlaces estándar de Markdown. Queda prohibido usar callouts o wikilinks de Obsidian en PRs o chat porque se visualizan rotos en GitHub.
 
 ### A. Fórmulas Matemáticas (KaTeX / LaTeX)
 * Escribe siempre las fórmulas en formato estándar de KaTeX:
@@ -63,6 +63,18 @@ En los archivos de apuntes del Vault, usa los bloques nativos de Obsidian:
 
 *(Nota: Para el cuerpo de una Pull Request o comentarios en GitHub, reemplázalos por su equivalente GFM: `[!NOTE]`, `[!TIP]`, `[!WARNING]`, etc.)*
 
+### D. Formato de Enlaces según el Entorno (Obsidian vs. GitHub vs. Chat)
+
+Para asegurar que los enlaces funcionen tanto en la navegación local de Obsidian como en la web de GitHub y en el chat:
+
+| Entorno | Formato de Enlace | Sintaxis | Ejemplo | Motivo |
+| :--- | :--- | :--- | :--- | :--- |
+| **Apuntes del Vault (`Tema 1/` ... `Tema 5/`)** | **Wikilinks de Obsidian** | `[[Ruta/Relativa/Nota\|Texto]]` | `[[Tema 2/1. Representacion y Filtrado\|1. Filtrado]]` | Integración con el grafo, enlaces bidireccionales y navegación nativa de Obsidian. |
+| **GitHub (PRs, Issues, Comentarios)** | **Markdown Estándar Relativo** | `[Texto](ruta/relativa.md)` | `[1. Filtrado](Tema%202/1.%20Representacion%20y%20Filtrado.md)` | GitHub en la web no resuelve wikilinks `[[...]]`; requiere enlaces Markdown estándar. |
+| **Chat de Asistentes IA (IDE)** | **Markdown Estándar con `file:///`** | `[Texto](file:///ruta/absoluta.md)` | `[1. Filtrado](file:///home/.../Tema%202/1.md)` | Requerido por el harness del editor para abrir el archivo directamente en el IDE al hacer clic. |
+
+* **Prohibición de rutas absolutas en archivos del repositorio:** Ningún archivo markdown del repositorio debe contener rutas absolutas (`file:///...` o `/home/...`). Todos los enlaces dentro del vault deben ser relativos mediante Wikilinks para garantizar la portabilidad absoluta del repositorio entre diferentes usuarios y sistemas operativos.
+
 ---
 
 ## 3. ¿Qué contenido puedes aportar?
@@ -71,4 +83,4 @@ En los archivos de apuntes del Vault, usa los bloques nativos de Obsidian:
 * 🧪 **Código reproducible:** Fragmentos breves y claros en Python con OpenCV o NumPy.
 * 🎯 **Exámenes y ejercicios resueltos:** Preguntas teóricas de años anteriores explicadas con rigor.
 * 📚 **Nuevas referencias:** Artículos clave o tutoriales recomendados.
-* 📚 **Mejoras en la busqueda semántica:** Mejoras en los scripts de consulta, descarga o instrucciones para el agente.
+* 📚 **Mejoras en la búsqueda semántica:** Mejoras en los scripts de consulta, descarga o instrucciones para el agente.
