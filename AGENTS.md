@@ -124,18 +124,27 @@ flowchart TD
 1. **Recepción e Identificación:** Extraer las entidades matemáticas y algorítmicas clave tanto en español como en inglés (p. ej. *filtro bilateral* $\leftrightarrow$ *bilateral filter*, *geometría epipolar* $\leftrightarrow$ *epipolar geometry*).
 2. **Consulta Vectorial:** Ejecutar `query.py` con `--top-k 4 --json` a través de `uv run`.
 3. **Profundización Documental:** Si los fragmentos devueltos requieren mayor contexto (deducciones paso a paso, gráficas o tablas), examinar el archivo Markdown modular mediante `view_file`.
-4. **Redacción con Estilo del Vault:** Formatear la explicación respetando las directrices de Obsidian (KaTeX para fórmulas con su leyenda matemática, callouts de advertencia o información, diagramas Mermaid).
+4. **Redacción según el Canal (Apuntes vs. Chat/PRs):**
+   * **En apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usar sintaxis nativa de Obsidian (KaTeX con leyenda en callout `> [!info]`, callouts en minúsculas como `[!info]`, `[!tip]`, `[!example]`, diagramas Mermaid).
+   * **En respuestas del Chat o descripción de PRs:** Usar exclusivamente GitHub Flavored Markdown (GFM Alerts: `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`). No usar callouts de Obsidian (`[!info]`, `[!example]`, etc.) en el chat ni en PRs.
 5. **Cierre con Bibliografía:** Cerrar obligatoriamente con el bloque de referencias bibliográficas detallado.
 
 ---
 
-## 5. Estándares de Estilo y Formato para los Apuntes (Obsidian)
+## 5. Estándares de Estilo y Formato: Obsidian (Apuntes) vs. GitHub (Chat y PRs)
+
+> [!IMPORTANT]
+> **Regla de Ámbito para Callouts:**
+> * **Apuntes del Vault (`Tema 1/` ... `Tema 5/`):** Los callouts con formato Obsidian (`[!info]`, `[!tip]`, `[!warning]`, `[!example]`, etc.) van **única y exclusivamente** en los apuntes del Vault.
+> * **Respuestas por Chat y Pull Requests (PRs):** Deberá usarse obligatoriamente el formato nativo de **GitHub Markdown (GFM Alerts)** en mayúsculas (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`). Nunca usar callouts de Obsidian en el chat o en PRs.
 
 Cuando el agente redacte o edite notas en `Tema 1/` ... `Tema 5/`, debe seguir las normas acordadas en [CONTRIBUTING.md](CONTRIBUTING.md):
 
 ### A. Fórmulas Matemáticas y Notación (KaTeX)
 * Expresiones en línea con `$...$` y en bloque con `$$...$$`.
-* **Leyenda Matemática Obligatoria:** Tras toda fórmula principal, se debe incluir un callout explicando cada término:
+* **Leyenda Matemática Obligatoria:** Tras toda fórmula principal, se debe incluir una leyenda explicando cada término:
+  * En **apuntes**: bloque callout de Obsidian `> [!info] Leyenda Matemática`.
+  * En **chat / PRs**: alerta GitHub `> [!NOTE]` seguido de `> **Leyenda Matemática**`.
   ```markdown
   $$ I_B(x) = \frac{1}{W_p} \sum_{x_i \in \Omega} I(x_i) f_r(\|I(x_i) - I(x)\|) g_s(\|x_i - x\|) $$
 
@@ -146,12 +155,14 @@ Cuando el agente redacte o edite notas en `Tema 1/` ... `Tema 5/`, debe seguir l
   > - $W_p$: Factor de normalización para asegurar la conservación de energía.
   ```
 
-### B. Callouts de Obsidian
-Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el contenido:
+### B. Callouts de Obsidian (Solo en Apuntes)
+Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el contenido de los apuntes:
 * `> [!info]` Definiciones clave, intuiciones conceptuales y leyendas matemáticas.
 * `> [!tip]` Recomendaciones de implementación, optimización o trucos para exámenes.
 * `> [!warning]` Casos degenerados, fallos habituales de algoritmos o limitaciones teóricas.
 * `> [!example]` Ejemplos numéricos resueltos paso a paso.
+
+*(Recordatorio: En el chat y PRs usar los 5 tipos de GitHub: `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`)*.
 
 ### C. Diagramas Mermaid
 * No insertar imágenes binarias si el concepto puede explicarse con un diagrama `mermaid` (`graph TD`, `flowchart LR`, etc.).

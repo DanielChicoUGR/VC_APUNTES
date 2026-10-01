@@ -23,16 +23,21 @@ Para evitar conflictos y mantener el repositorio siempre funcional:
 
 ---
 
-## 2. Estándares de Formato y Estilo en Obsidian
+## 2. Estándares de Formato y Estilo: Obsidian (Apuntes) vs. GitHub (PRs y Chat)
 
-Para mantener la estética limpia y la compatibilidad con todos los visores:
+Para mantener la estética limpia y garantizar que el contenido se renderice correctamente en cada plataforma:
+
+> [!IMPORTANT]
+> **Separación de Formatos según el Destino:**
+> * **Apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usan la sintaxis nativa de **Obsidian Callouts** (`[!info]`, `[!tip]`, `[!warning]`, `[!example]`, etc.).
+> * **Pull Requests (PRs), Issues y respuestas de Chat:** Deben usar **exclusivamente GitHub Flavored Markdown (GFM) Alerts** en mayúsculas (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`). Queda prohibido usar callouts de Obsidian como `[!info]` en PRs o chat porque se visualizan rotos en GitHub.
 
 ### A. Fórmulas Matemáticas (KaTeX / LaTeX)
 * Escribe siempre las fórmulas en formato estándar de KaTeX:
   * En línea: `$G = H * F$`
   * En bloque:
     $$ G[i, j] = \sum_{u=-k}^{k} \sum_{v=-k}^{k} H[u, v] F[i-u, j-v] $$
-* **Leyenda obligatoria:** Tras cada fórmula principal, incluye un callout explicando qué representa cada variable:
+* **Leyenda obligatoria:** Tras cada fórmula principal, incluye una leyenda explicando qué representa cada variable (en apuntes se usa callout `> [!info] Leyenda Matemática`; en GitHub / PRs se usa `> [!NOTE]` seguido de `> **Leyenda Matemática**`):
   ```markdown
   > [!info] Leyenda Matemática
   > - $G[i, j]$: Píxel de la imagen resultante.
@@ -49,11 +54,14 @@ Para mantener la estética limpia y la compatibilidad con todos los visores:
   ```
   ````
 
-### C. Bloques de Información (Callouts de Obsidian)
-Usa los bloques nativos para destacar información relevante:
-* `> [!info]` para definiciones clave o leyendas.
+### C. Bloques de Información (Callouts de Obsidian solo en apuntes)
+En los archivos de apuntes del Vault, usa los bloques nativos de Obsidian:
+* `> [!info]` para definiciones clave o leyendas matemáticas.
 * `> [!tip]` para consejos de examen o trucos prácticos.
 * `> [!warning]` para errores frecuentes o casos donde falla un algoritmo.
+* `> [!example]` para ejemplos resueltos paso a paso.
+
+*(Nota: Para el cuerpo de una Pull Request o comentarios en GitHub, reemplázalos por su equivalente GFM: `[!NOTE]`, `[!TIP]`, `[!WARNING]`, etc.)*
 
 ---
 
