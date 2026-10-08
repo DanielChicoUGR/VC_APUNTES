@@ -1,0 +1,11 @@
+[mcp_servers.vc-textbook-rag]
+command = "/home/dachival/.local/bin/uv"
+args = [
+  "run",
+  "--with", "mcp,lancedb,fastembed",
+  "python3",
+  ".agents/skills/vc-textbook-rag/scripts/server.py"
+]
+cwd = "/home/dachival/Proyectos/VC_APUNTES"
+startup_timeout_sec = 120
+tool_timeout_sec = 120

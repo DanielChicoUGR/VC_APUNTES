@@ -10,7 +10,7 @@ Este archivo define el contexto, la estructura del proyecto y las **directivas d
 
 El propósito del repositorio es doble:
 1. **Vault de Apuntes de Alta Calidad:** Albergar apuntes teóricos y prácticos rigurosos, explicados de forma intuitiva, con fórmulas matemáticas en KaTeX, leyendas explicativas, diagramas Mermaid y bloques de notas (*callouts* de Obsidian).
-2. **Motor RAG Canónico Integrado:** Disponer de una base de datos vectorial local ([LanceDB](https://lancedb.com/) + [FastEmbed](https://qdrant.github.io/fastembed/)) que indexa los libros de texto canónicos de la disciplina procesados a Markdown modular en `docs_clase/textBook/`.
+2. **Motor RAG Canónico Integrado:** Disponer de una base de datos vectorial local ([LanceDB](https://lancedb.com/) + [FastEmbed](https://qdrant.github.io/fastembed/)) accesible vía **servidor MCP** (`search_textbooks`) o CLI, que indexa los libros de texto canónicos de la disciplina procesados a Markdown modular en `docs_clase/textBook/`.
 
 ---
 
@@ -18,7 +18,9 @@ El propósito del repositorio es doble:
 
 ```text
 VC_APUNTES/
-├── AGENTS.md                         # Directivas y contexto para agentes de IA (este archivo)
+├── .mcp.json                         # Configuración estándar MCP para workspace / agentes
+├── AGENTS.md                         # Directivas y contexto para agentes de IA
+├── CLAUDE.md                         # Directivas específicas para entornos Claude (este archivo)
 ├── README.md                         # Portada y guía general del vault
 ├── CONTRIBUTING.md                   # Normas de colaboración y estilo para estudiantes
 ├── setup.sh                          # Script de inicialización automatizada en un solo paso
@@ -40,12 +42,13 @@ VC_APUNTES/
 │       ├── Torralba_Foundations/     # A. Torralba, P. Isola, W.T. Freeman (2024) - Foundations of CV
 │       └── Matrix_Calculus/          # P. Bright, A. Edelman, S.G. Johnson (2025) - Matrix Calculus
 │
-├── .agents/skills/vc-textbook-rag/   # Skill de IA: Buscador semántico vectorial
+├── .agents/skills/vc-textbook-rag/   # Skill / MCP Server: Buscador semántico y léxico
 │   ├── SKILL.md                      # Especificación de la skill RAG
-│   ├── data/lancedb/                 # Base de datos vectorial persistente (textbook_chunks.lance)
+│   ├── data/lancedb/                 # Base de datos persistente (textbook_chunks.lance)
 │   └── scripts/
 │       ├── query.py                  # Script de búsqueda semántica (CLI y formato JSON)
-│       └── build_index.py            # Generador/reconstructor del índice vectorial
+│       ├── server.py                 # Servidor MCP stdio (herramienta search_textbooks)
+│       └── build_index.py            # Generador/reconstructor del índice vectorial y BM25
 │
 └── scripts/                          # Herramientas de preparación del entorno
     ├── books_config.json             # Catálogo de libros y metadatos de ingestión
@@ -61,20 +64,26 @@ VC_APUNTES/
 > **REGLAS CRÍTICAS DE ACCIÓN INMEDIATA:**
 > Todo agente que responda dudas, redacte, resuma o modifique apuntes en este repositorio DEBE acatar de forma estricta las dos directivas siguientes. No se admiten excepciones.
 
-### 🔴 Directiva 1: Uso Obligatorio de la Skill `vc-textbook-rag`
+### 🔴 Directiva 1: Uso Obligatorio del Motor RAG (`search_textbooks` / `vc-textbook-rag`)
 
-Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matemática o de diseño** sobre Visión por Computador, el agente **DEBE consultar y basarse en la skill** [`.agents/skills/vc-textbook-rag`](.agents/skills/vc-textbook-rag/SKILL.md).
+Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matemática o de diseño** sobre Visión por Computador, el agente **DEBE consultar y basarse en la literatura indexada**:
 
 * **Prohibido responder exclusivamente con memoria paramétrica:** No alucines definiciones ni resumas de memoria cuando la literatura de referencia está indexada en el repositorio.
-* **Recuperación previa:** Antes de formular una respuesta técnica, localiza las fuentes mediante el script de la skill. Puedes usar `--mode vector`, `--mode bm25` o `--mode both`:
+* **Vía preferente (MCP Tool):** Si el entorno dispone de la herramienta MCP `search_textbooks`, invócala directamente:
+  ```json
+  search_textbooks(
+    query="filtro bilateral",
+    mode="vector",  // "vector" | "bm25" | "both"
+    lexical_query="bilateral filter", // opcional para bm25
+    top_k=4,
+    book="all"      // "szeliski" | "forsyth" | "all"
+  )
+  ```
+* **Vía alternativa (Fallback CLI):** Si la herramienta MCP no está disponible en las funciones del agente, ejecuta `query.py`:
   ```bash
   uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "<consulta en español o inglés>" --top-k 4 --json
   ```
-* **Filtros por autor/libro:** Si la pregunta concierne a un autor o enfoque específico, utiliza la opción `--book` (`szeliski`, `forsyth`, etc.):
-  ```bash
-  uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "filtro bilateral" --book szeliski --json
-  ```
-* **Lectura obligatoria de fuentes:** Lee los archivos originales indicados por `file_path` con una herramienta disponible. Deduplica lecturas entre `embeddings` y `bm25`, conservando sus encabezados relevantes. Sigue enlaces internos cuando aporten definiciones, hipótesis o demostraciones necesarias; resuelve rutas relativas desde el archivo origen y evita ciclos. Inspecciona imágenes de fórmulas o figuras cuando hagan falta. Los fragmentos de búsqueda no sustituyen la lectura de fuentes.
+* **Lectura obligatoria de fuentes:** Lee los archivos originales indicados por `file_path` con una herramienta de lectura de archivos. Deduplica lecturas entre `embeddings` y `bm25`, conservando sus encabezados relevantes. Sigue enlaces internos cuando aporten definiciones, hipótesis o demostraciones necesarias; resuelve rutas relativas desde el archivo origen y evita ciclos. Inspecciona imágenes de fórmulas o figuras cuando hagan falta. Los fragmentos de búsqueda no sustituyen la lectura de fuentes.
 
 ---
 
@@ -98,7 +107,7 @@ Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matem�
 ### 📚 Referencias Bibliográficas
 
 - **Szeliski, Richard** (2022). *Computer Vision: Algorithms and Applications* (2nd ed.).
-  - **Capítulo / Sección:** Chapter 3: Image processing $\to$ Section 3.3.1: *Bilateral filter*.
+  - **Capítulo / Sección:** Chapter 3: Image processing $\to$ Section 3.3.1: *Bilateral filter* .
   - **Archivo local:** [[docs_clase/textBook/Szeliski/Chapter_3_Image_processing/3.3_Neighborhood_operators.md|Szeliski - Chapter 3.3 Neighborhood operators]]
 - **Torralba, Antonio; Isola, Phillip; Freeman, William T.** (2024). *Foundations of Computer Vision*. MIT Press.
   - **Capítulo / Sección:** Filter Banks $\to$ *Steerable Quadrature Pairs*.
@@ -114,18 +123,21 @@ Ante cualquier petición del usuario sobre Visión por Computador:
 ```mermaid
 flowchart TD
     A[Pregunta del Usuario] --> B[Identificar Conceptos Clave en ES e EN]
-    B --> C[Ejecutar query.py de vc-textbook-rag con --json]
-    C --> D{¿Resultados Suficientes?}
-    D -- No --> E[Reformular consulta o ampliar --top-k]
-    E --> C
-    D -- Sí --> F[Leer fuentes originales y enlaces internos relevantes]
-    F --> G[Sintetizar respuesta con rigor matemático y formato Obsidian]
-    G --> H[Incluir sección obligatoria de Referencias Bibliográficas con Wikilinks]
-    H --> I[Entregar respuesta al usuario]
+    B --> C{¿MCP Disponible?}
+    C -- Sí --> D1[Llamar tool search_textbooks]
+    C -- No --> D2[Ejecutar query.py con --json]
+    D1 --> E{¿Resultados Suficientes?}
+    D2 --> E
+    E -- No --> F[Reformular consulta o ampliar top_k]
+    F --> C
+    E -- Sí --> G[Leer fuentes originales y enlaces internos relevantes]
+    G --> H[Sintetizar respuesta con rigor matemático y formato Obsidian]
+    H --> I[Incluir sección obligatoria de Referencias Bibliográficas con Wikilinks]
+    I --> J[Entregar respuesta al usuario]
 ```
 
 1. **Recepción e Identificación:** Extraer las entidades matemáticas y algorítmicas clave tanto en español como en inglés (p. ej. *filtro bilateral* $\leftrightarrow$ *bilateral filter*, *geometría epipolar* $\leftrightarrow$ *epipolar geometry*).
-2. **Recuperación:** Ejecutar `query.py` con `--mode vector|bm25|both --top-k 4 --json`. En BM25, usar términos técnicos ingleses para libros ingleses y preservar nombres propios y siglas; para material español, conservar también términos españoles. `--lexical-query` permite separar la consulta léxica de la pregunta semántica. Consultar la skill para comandos concretos.
+2. **Recuperación:** Usar `search_textbooks` (MCP) o `query.py` con `mode: vector | bm25 | both`. En BM25, usar términos técnicos ingleses para libros ingleses y preservar nombres propios y siglas; para material español, conservar también términos españoles. `lexical_query` permite separar la consulta léxica de la pregunta semántica.
 3. **Lectura y relación de fuentes:** Leer los archivos recuperados antes de sintetizar, incluyendo las secciones necesarias y sus enlaces internos relevantes. Registrar qué fuentes se han consultado; citar solo fuentes leídas. Si la ruta exacta ya se conoce, leer directamente el archivo.
 4. **Redacción según el Canal (Apuntes vs. GitHub/PRs vs. Chat):**
    * **En apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usar sintaxis nativa de Obsidian (KaTeX con leyenda en callout `> [!info]`, callouts en minúsculas como `[!info]`, `[!tip]`, `[!example]`, diagramas Mermaid, y **Wikilinks nativos de Obsidian `[[...]]`** para enlaces internos y bibliografía).
@@ -186,6 +198,10 @@ Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el con
 
 ## 6. Comandos de Mantenimiento y Utilidades
 
+* **Ejecutar servidor MCP directamente:**
+  ```bash
+  uv run --with mcp,lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/server.py
+  ```
 * **Ejecutar consulta en consola (salida amigable):**
   ```bash
   uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "harris corner detector"
@@ -199,10 +215,9 @@ Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el con
   uv run --with lancedb,fastembed,pyyaml python3 .agents/skills/vc-textbook-rag/scripts/build_index.py --force
   ```
 
-
 ### Recuperación BM25 y doble búsqueda
 
-Flujo: **Pregunta → buscar archivos relevantes (vector/BM25/ambos) → leerlos y seguir enlaces pertinentes → responder con referencias**.
+Flujo: **Pregunta $\to$ buscar archivos relevantes (vector/BM25/ambos) $\to$ leerlos y seguir enlaces pertinentes $\to$ responder con referencias**.
 
 ```bash
 # Preparación inicial sobre el índice existente, sin recalcular embeddings
@@ -219,5 +234,5 @@ La salida JSON contiene `query`, `mode`, `lexical_query`, `embeddings` y `bm25`.
 
 ### Referencias de implementación
 
-- **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [buscador](.agents/skills/vc-textbook-rag/scripts/query.py), [indexador](.agents/skills/vc-textbook-rag/scripts/build_index.py).
+- **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [buscador](.agents/skills/vc-textbook-rag/scripts/query.py), [servidor MCP](.agents/skills/vc-textbook-rag/scripts/server.py), [indexador](.agents/skills/vc-textbook-rag/scripts/build_index.py).
 - **LanceDB contributors**. *LanceDB Python API*, creación de índices FTS y búsqueda textual: [documentación oficial](https://lancedb.github.io/lancedb/python/python/).

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "vc-textbook-rag": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "mcp,lancedb,fastembed",
+        "python3",
+        ".agents/skills/vc-textbook-rag/scripts/server.py"
+      ]
+    }
+  }
+}

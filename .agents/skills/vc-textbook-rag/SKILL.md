@@ -9,10 +9,10 @@ description: Locate Computer Vision textbook and class-document sources using mu
 
 Question → locate relevant files (vector / BM25 / both) → read original files → respond with references.
 
-Use `scripts/query.py` to locate evidence in `docs_clase/`. Results are pointers and excerpts, not a substitute for reading the sources. Personal `Tema 1`–`Tema 5` notes are not indexed.
+Use the MCP tool `search_textbooks` (preferred) or `scripts/query.py` via CLI to locate evidence in `docs_clase/`. Results are pointers and excerpts, not a substitute for reading the sources. Personal `Tema 1`–`Tema 5` notes are not indexed.
 
 1. Extract the technical concepts. Use `vector` for descriptive or multilingual questions, `bm25` for named concepts and exact terms, and `both` when both signals are useful. The default remains `vector`.
-2. For BM25 over English books, supply English technical terms, preserving proper names and acronyms. Use `--lexical-query` to retain the original semantic question. For Spanish class material retain Spanish terms; if necessary query both languages. The script does not translate.
+2. For BM25 over English books, supply English technical terms, preserving proper names and acronyms. Use `--lexical-query` (or parameter `lexical_query`) to retain the original semantic question. For Spanish class material retain Spanish terms; if necessary query both languages. The script does not translate.
 3. Inspect both result lists when requested. Deduplicate source reads by `file_path`, keeping all relevant `heading` values. Read the returned source files with an available file-reading tool. For long files, locate and read the relevant sections and enough surrounding context to establish definitions, assumptions and equations.
 4. Follow Markdown links and Obsidian wikilinks when they provide needed definitions, derivations or related evidence. Resolve relative Markdown paths against the source directory and heading anchors inside the target file; resolve vault wikilinks within the vault. Inspect equation/figure images when needed. Track already-read files and sections to avoid loops and redundant reads. Do not traverse navigation links indiscriminately.
 5. If evidence is insufficient, reformulate or widen retrieval. Never claim a source was read based only on its search excerpt. Cite only consulted sources, with exact chapter/section and PDF pages when available, using the channel-specific format in AGENTS.md.
@@ -24,6 +24,9 @@ If the exact source path is already known, read it directly rather than repeatin
 From the repository root:
 
 ```bash
+# MCP Server (Model Context Protocol stdio)
+uv run --with mcp,lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/server.py
+
 # Multilingual semantic search
 uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "filtro bilateral" --mode vector --top-k 4 --json
 
@@ -63,4 +66,4 @@ This replaces the previous JSON `results` key; update callers to read `embedding
 ## References
 
 - LanceDB contributors. *LanceDB Python API*, `create_fts_index` and full-text query builders: [official API](https://lancedb.github.io/lancedb/python/python/).
-- VC_APUNTES. *Source retrieval implementation*: [query.py](scripts/query.py), [build_index.py](scripts/build_index.py).
+- VC_APUNTES. *Source retrieval implementation*: [query.py](scripts/query.py), [server.py](scripts/server.py), [build_index.py](scripts/build_index.py).

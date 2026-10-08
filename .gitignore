@@ -33,3 +33,6 @@ __pycache__/
 # --- Archivos de sistema operativo ---
 .DS_Store
 Thumbs.db
+
+# --- Ajustes locales de Claude Code (.claude es un symlink a .agents/) ---
+.agents/settings.local.json

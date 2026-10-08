@@ -37,7 +37,7 @@ El repositorio procesa y permite realizar búsquedas semánticas sobre los sigui
 | Disciplina | Libro / Documento | Autores | Año / Edición | Formato |
 | :--- | :--- | :--- | :---: | :---: |
 | **Visión Clásica** | *Computer Vision: Algorithms and Applications* | Richard Szeliski | 2nd Ed. (2022) | PDF $\to$ MD |
-| **Visión Clásica** | *Computer Vision: A Modern Approach* | D. Forsyth & J. Ponce | 2nd Ed. (2012) | PDF $\to$ MD |
+| **Visión Clásica** | *Computer Vision: A Modern Approach* | D. Forsyth & Jean Ponce | 2nd Ed. (2012) | PDF $\to$ MD |
 | **Geometría y 3D** | *Multiple View Geometry in Computer Vision* | R. Hartley & A. Zisserman | 2nd Ed. (2011) | PDF $\to$ MD |
 | **Deep Learning** | *Understanding Deep Learning* | Simon J.D. Prince | MIT Press (2023) | PDF $\to$ MD |
 | **Visión Moderna** | *Foundations of Computer Vision* | A. Torralba, P. Isola, W.T. Freeman | MIT Press (2024) | Quarto $\to$ MD |
@@ -61,7 +61,7 @@ uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/q
 uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "harris corner detector eigenvalues" --top-k 2 --json
 
 # Preparar BM25 sobre el índice existente, sin recalcular vectores:
-uv run --with lancedb,pyyaml python3 .agents/skills/vc-textbook-rag/scripts/build_index.py --fts-only
+uv run --with lancedb,pyyaml,fastembed python3 .agents/skills/vc-textbook-rag/scripts/build_index.py --fts-only
 
 # Solo BM25, sin cargar FastEmbed:
 uv run --with lancedb python3 .agents/skills/vc-textbook-rag/scripts/query.py "Harris corner detector" --mode bm25 --json
@@ -72,16 +72,61 @@ uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/q
 
 ---
 
-## 📂 Estructura del Repositorio
+## 🔌 Integración MCP (Model Context Protocol)
+
+El motor RAG está disponible de forma nativa como servidor **MCP** (`vc-textbook-rag`), ofreciendo la herramienta `search_textbooks` para asistentes de IA sin necesidad de ejecutar comandos de terminal.
+
+### Carga automática estándar en IDEs y Claude Code (`.mcp.json`)
+El repositorio incluye el archivo preconfigurado `.mcp.json` en la raíz. Entornos compatibles como **Claude Code**, **Cursor**, **Windsurf**, **Cline** y **Roo Code** detectan y cargan el servidor automáticamente al abrir la carpeta del proyecto (en Claude Code puedes comprobarlo con `claude mcp list`).
+
+### Comando manual para Claude Code (CLI)
+Si necesitas registrarlo manualmente en el espacio de trabajo con `claude mcp add`, separa las opciones del subproceso con `--` y define el scope:
+```bash
+claude mcp add --scope project vc-textbook-rag -- uv run --with mcp,lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/server.py
+```
+
+### Configuración en Claude Desktop
+Claude Desktop requiere registro en su archivo de configuración global (`~/.config/Claude/claude_desktop_config.json` en Linux o `~/Library/Application Support/Claude/claude_desktop_config.json` en macOS):
+```json
+{
+  "mcpServers": {
+    "vc-textbook-rag": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/ruta/absoluta/a/VC_APUNTES",
+        "--with",
+        "mcp,lancedb,fastembed",
+        "python3",
+        ".agents/skills/vc-textbook-rag/scripts/server.py"
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 📁 Estructura del Repositorio
 
 ```text
 VC_APUNTES/
+├── .mcp.json                      # Configuración estándar del servidor MCP para el workspace
+├── AGENTS.md                      # Directivas para agentes de IA (prioridad MCP / fallback CLI)
+├── CLAUDE.md                      # Directivas específicas para entornos Claude
 ├── Tema 1/ ... Tema 5/           # Apuntes colaborativos de la asignatura
 ├── docs_clase/
 │   ├── T1/, T2/                  # Diapositivas y material de clase
 │   └── textBook/                 # Libros procesados en Markdown modular con sus imágenes
 ├── .agents/skills/
 │   └── vc-textbook-rag/          # Skill de IA: indexador, buscador y base de datos LanceDB
+│       ├── SKILL.md              # Especificación de la skill
+│       ├── data/lancedb/         # Base de datos vectorial persistente
+│       └── scripts/
+│           ├── query.py          # Búsqueda semántica / léxica por CLI
+│           ├── server.py         # Servidor MCP stdio (search_textbooks)
+│           └── build_index.py    # Constructor del índice vectorial y FTS
 ├── scripts/
 │   ├── books_config.json         # Catálogo de libros y URLs de descarga
 │   ├── process_textbooks.py      # Pipeline de conversión PDF/Quarto a Markdown
@@ -96,8 +141,8 @@ VC_APUNTES/
 
 Cualquier alumno puede proponer mejoras, corregir fórmulas, añadir exámenes resueltos o ampliar temas. Consulta las normas en [CONTRIBUTING.md](CONTRIBUTING.md).
 
-
 ### Referencias del buscador
 
-- **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [query.py](.agents/skills/vc-textbook-rag/scripts/query.py). El JSON devuelve listas `embeddings` y `bm25`, sustituyendo `results`; tras localizar archivos, hay que leerlos y seguir enlaces pertinentes antes de responder con referencias.
+- **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [query.py](.agents/skills/vc-textbook-rag/scripts/query.py), [server.py](.agents/skills/vc-textbook-rag/scripts/server.py). El servidor MCP y la salida JSON devuelven listas `embeddings` y `bm25`; tras localizar archivos, hay que leerlos y seguir enlaces pertinentes antes de responder con referencias.
 - **LanceDB contributors**. *LanceDB Python API*, índices FTS y búsqueda BM25: [documentación oficial](https://lancedb.github.io/lancedb/python/python/).
+- **Model Context Protocol**. *SDK Python oficial*: [py-mcp](https://github.com/modelcontextprotocol/python-sdk).
