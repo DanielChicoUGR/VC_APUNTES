@@ -45,20 +45,29 @@ El repositorio procesa y permite realizar búsquedas semánticas sobre los sigui
 
 ---
 
-## 🔍 Búsqueda Semántica Local (RAG)
+## 🔍 Búsqueda Local (Vectores y BM25)
 
 El repositorio incluye un motor de búsqueda vectorial local basado en **LanceDB** y **FastEmbed** (`paraphrase-multilingual-MiniLM-L12-v2`). Permite hacer preguntas en **español** para encontrar párrafos, fórmulas y algoritmos en los libros en **inglés**:
 
 ### Consultar desde la terminal:
 ```bash
 # Búsqueda general:
-uv run python3 .agents/skills/vc-textbook-rag/scripts/query.py "cómo funciona el filtro bilateral para reducir ruido"
+uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "cómo funciona el filtro bilateral para reducir ruido"
 
 # Filtrar por libro específico:
-uv run python3 .agents/skills/vc-textbook-rag/scripts/query.py "matriz fundamental y geometria epipolar" --book hartley_zisserman
+uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "matriz fundamental y geometria epipolar" --book szeliski
 
 # Salida en formato JSON (para agentes de IA):
-uv run python3 .agents/skills/vc-textbook-rag/scripts/query.py "harris corner detector eigenvalues" --top-k 2 --json
+uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "harris corner detector eigenvalues" --top-k 2 --json
+
+# Preparar BM25 sobre el índice existente, sin recalcular vectores:
+uv run --with lancedb,pyyaml python3 .agents/skills/vc-textbook-rag/scripts/build_index.py --fts-only
+
+# Solo BM25, sin cargar FastEmbed:
+uv run --with lancedb python3 .agents/skills/vc-textbook-rag/scripts/query.py "Harris corner detector" --mode bm25 --json
+
+# Ambos motores con consultas separadas:
+uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "detector de esquinas Harris" --mode both --lexical-query "Harris corner detector" --json
 ```
 
 ---
@@ -86,3 +95,9 @@ VC_APUNTES/
 ## 🤝 Cómo Colaborar
 
 Cualquier alumno puede proponer mejoras, corregir fórmulas, añadir exámenes resueltos o ampliar temas. Consulta las normas en [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
+### Referencias del buscador
+
+- **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [query.py](.agents/skills/vc-textbook-rag/scripts/query.py). El JSON devuelve listas `embeddings` y `bm25`, sustituyendo `results`; tras localizar archivos, hay que leerlos y seguir enlaces pertinentes antes de responder con referencias.
+- **LanceDB contributors**. *LanceDB Python API*, índices FTS y búsqueda BM25: [documentación oficial](https://lancedb.github.io/lancedb/python/python/).

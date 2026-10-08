@@ -1,126 +1,96 @@
 #!/usr/bin/env python3
-"""
-query.py
-========
-Performs semantic vector searches against the local LanceDB index of Computer Vision textbooks.
-Supports multilingual queries (Spanish queries find English text) using FastEmbed.
-
-Usage:
-    uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "<consulta>" [OPTIONS]
-
-Options:
-    --top-k N             Number of top results to return (default: 4)
-    --book [szeliski|forsyth|all] Filter by book (default: all)
-    --json                Output results in JSON format (for agent programmatic use)
-"""
-
-import sys
-import json
+"""Locate textbook passages using vectors, BM25, or both; then read the sources."""
 import argparse
+import json
+import sys
 from pathlib import Path
-
-try:
-    import lancedb
-    from fastembed import TextEmbedding
-except ImportError:
-    print("Error: Missing required packages. Run with:")
-    print("uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py \"<query>\"")
-    sys.exit(1)
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
 DB_DIR = SKILL_DIR / "data" / "lancedb"
 MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+BOOK_PATHS = {"szeliski": "Szeliski", "forsyth": "Forsyth_Ponce"}
 
 
-def search_vector_db(query_text: str, top_k: int = 4, book_filter: str = "all") -> list:
-    """Executes a semantic vector search on the LanceDB textbook index."""
+def open_table():
+    import lancedb
     if not DB_DIR.exists():
-        raise FileNotFoundError(f"Database not found at {DB_DIR}. Run build_index.py first.")
+        raise FileNotFoundError("Database not found. Run build_index.py first.")
+    return lancedb.connect(str(DB_DIR)).open_table("textbook_chunks")
 
-    db = lancedb.connect(str(DB_DIR))
-    table_name = "textbook_chunks"
-    try:
-        table = db.open_table(table_name)
-    except Exception:
-        raise ValueError(f"Table '{table_name}' does not exist in {DB_DIR}. Run build_index.py first.")
 
-    # Embed query
-    model = TextEmbedding(MODEL_NAME)
-    query_emb = list(model.embed([query_text]))[0]
-
-    # Search
-    search_query = table.search(query_emb).metric("cosine")
-    
+def filtered(search, book_filter):
     if book_filter != "all":
-        # Case-insensitive filtering
-        filter_pattern = "Szeliski" if book_filter.lower() == "szeliski" else "Forsyth"
-        search_query = search_query.where(f"book LIKE '%{filter_pattern}%'")
+        search = search.where(f"file_path LIKE 'docs_clase/textBook/{BOOK_PATHS[book_filter]}/%'")
+    return search
 
-    results = search_query.limit(top_k).to_list()
-    return results
+
+def search_vector_db(query_text, top_k=4, book_filter="all", table=None):
+    from fastembed import TextEmbedding
+    if table is None:
+        table = open_table()
+    vector = next(TextEmbedding(MODEL_NAME).embed([query_text]))
+    return filtered(table.search(vector).metric("cosine"), book_filter).limit(top_k).to_list()
+
+
+def search_bm25(query_text, top_k=4, book_filter="all", table=None):
+    if table is None:
+        table = open_table()
+    return filtered(table.search(query_text, query_type="fts", fts_columns="text"), book_filter).limit(top_k).to_list()
+
+
+def clean_results(results):
+    return [{**{k: v for k, v in row.items() if k != "vector"}, "rank": rank}
+            for rank, row in enumerate(results, 1)]
+
+
+def search(query_text, mode="vector", lexical_query=None, top_k=4, book_filter="all"):
+    table = open_table()
+    payload = {"query": query_text, "mode": mode, "lexical_query": lexical_query or query_text,
+               "embeddings": [], "bm25": []}
+    if mode in ("bm25", "both"):
+        payload["bm25"] = clean_results(search_bm25(payload["lexical_query"], top_k, book_filter, table))
+    if mode in ("vector", "both"):
+        payload["embeddings"] = clean_results(search_vector_db(query_text, top_k, book_filter, table))
+    return payload
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Query the local textbook RAG vector database.")
-    parser.add_argument("query", type=str, help="Search query (in Spanish or English)")
-    parser.add_argument("--top-k", type=int, default=4, help="Number of results to return")
-    parser.add_argument("--book", choices=["szeliski", "forsyth", "all"], default="all",
-                        help="Filter by specific textbook")
-    parser.add_argument("--json", action="store_true", help="Output raw JSON for LLM / script consumption")
-
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("query", help="Semantic query or lexical terms")
+    parser.add_argument("--mode", choices=["vector", "bm25", "both"], default="vector")
+    parser.add_argument("--lexical-query", help="Optional English terms for BM25; no automatic translation")
+    parser.add_argument("--top-k", type=int, default=4, help="Maximum passages per engine")
+    parser.add_argument("--book", choices=["szeliski", "forsyth", "all"], default="all")
+    parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
-
+    if args.top_k < 1:
+        parser.error("--top-k must be positive")
     try:
-        results = search_vector_db(args.query, top_k=args.top_k, book_filter=args.book)
-    except Exception as e:
+        payload = search(args.query, args.mode, args.lexical_query, args.top_k, args.book)
+    except Exception as exc:
+        message = str(exc)
+        if args.mode in ("bm25", "both"):
+            message += "\nIf the FTS index is missing, run build_index.py --fts-only."
         if args.json:
-            print(json.dumps({"error": str(e)}, ensure_ascii=False))
+            print(json.dumps({"error": message}, ensure_ascii=False))
         else:
-            print(f"❌ Error durante la búsqueda: {e}", file=sys.stderr)
-        sys.exit(1)
-
+            print(message, file=sys.stderr)
+        return 1
     if args.json:
-        # Clean vectors from output before serialization
-        clean_results = []
-        for r in results:
-            item = dict(r)
-            item.pop("vector", None)
-            clean_results.append(item)
-        print(json.dumps({"query": args.query, "results": clean_results}, indent=2, ensure_ascii=False))
-        return
-
-    # Formatted terminal output
-    print("\n" + "=" * 75)
-    print(f"🔍 Consulta Semántica: \"{args.query}\"")
-    print(f"📚 Resultados encontrados: {len(results)} (Filtro libro: {args.book})")
-    print("=" * 75)
-
-    if not results:
-        print("No se encontraron fragmentos relevantes para esta consulta.")
-        return
-
-    for idx, r in enumerate(results, 1):
-        dist = r.get("_distance", 0.0)
-        # Cosine distance to similarity percentage estimate
-        similarity = max(0.0, 1.0 - dist) * 100
-
-        print(f"\n[{idx}] 📖 {r['book']} | 📂 {r['chapter']}")
-        print(f"    🏷️  Sección: {r['section']} > {r['heading']}")
-        print(f"    📄 Páginas PDF: {r['pages_pdf']}  |  🔗 Archivo: {r['file_path']}")
-        print(f"    🎯 Similitud: {similarity:.1f}% (Distancia coseno: {dist:.4f})")
-        print("    " + "-" * 71)
-
-        # Show snippet with indent
-        text = r['text'].strip()
-        lines = text.splitlines()
-        preview = lines[:12]
-        for l in preview:
-            print(f"    {l}")
-        if len(lines) > 12:
-            print(f"    ... [+{len(lines) - 12} líneas adicionales en el archivo]")
-
-    print("\n" + "=" * 75 + "\n")
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        print(f"Consulta: {args.query} | Modo: {args.mode}")
+        for engine in ("embeddings", "bm25"):
+            if (engine == "embeddings" and args.mode == "bm25") or (engine == "bm25" and args.mode == "vector"):
+                continue
+            print(f"\n{engine}: {len(payload[engine])} resultados")
+            for row in payload[engine]:
+                print(f"[{row['rank']}] {row['file_path']}\n  {row['section']} > {row['heading']}")
+                metric = "_distance" if engine == "embeddings" else "_score"
+                print(f"  {metric}: {row.get(metric)} | Páginas PDF: {row['pages_pdf']}")
+                print(row['text'][:1200])
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

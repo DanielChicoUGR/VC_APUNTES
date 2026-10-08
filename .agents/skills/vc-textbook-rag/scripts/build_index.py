@@ -11,6 +11,7 @@ Usage:
 Options:
     --force             Re-index everything from scratch (overwrite table)
     --batch-size N      Embedding batch size (default: 64)
+    --fts-only          Add/update BM25 without recomputing vectors
 """
 
 import os
@@ -22,7 +23,7 @@ from pathlib import Path
 try:
     import yaml
     import lancedb
-    from fastembed import TextEmbedding
+    from lancedb.index import FTS
 except ImportError:
     print("Error: Missing required packages. Run with:")
     print("uv run --with lancedb,fastembed,pyyaml python3 .agents/skills/vc-textbook-rag/scripts/build_index.py")
@@ -139,8 +140,26 @@ def collect_markdown_documents():
 def main():
     parser = argparse.ArgumentParser(description="Index textbook documents into LanceDB.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing vector database")
+    parser.add_argument("--fts-only", action="store_true", help="Prepare BM25 on existing table without embeddings")
     parser.add_argument("--batch-size", type=int, default=64, help="Embedding batch size")
     args = parser.parse_args()
+    if args.batch_size < 1:
+        parser.error("--batch-size must be positive")
+    if args.fts_only:
+        table = lancedb.connect(str(DB_DIR)).open_table("textbook_chunks")
+        table.create_index("text", config=FTS(), replace=True)
+        print("BM25 index ready; existing vectors unchanged.")
+        return
+    if DB_DIR.exists() and not args.force:
+        db = lancedb.connect(str(DB_DIR))
+        try:
+            db.open_table("textbook_chunks")
+        except ValueError:
+            pass
+        else:
+            parser.error("Index already exists. Use --force to rebuild or --fts-only for BM25.")
+
+    from fastembed import TextEmbedding
 
     print("=======================================================")
     print("🚀 VC Textbook RAG - Indexador Vectorial Local")
@@ -204,7 +223,8 @@ def main():
 
     print(f"💾 Guardando tabla '{table_name}' en LanceDB: {DB_DIR}...")
     table = db.create_table(table_name, data=records, mode="overwrite")
-    print(f"✓ Éxito: {table.count_rows()} fragmentos indexados correctamente.")
+    table.create_index("text", config=FTS(), replace=True)
+    print(f"✓ Éxito: {table.count_rows()} fragmentos indexados con vectores y BM25.")
     print("=======================================================")
 
 

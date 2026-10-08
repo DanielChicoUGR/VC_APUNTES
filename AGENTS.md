@@ -66,7 +66,7 @@ VC_APUNTES/
 Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matemática o de diseño** sobre Visión por Computador, el agente **DEBE consultar y basarse en la skill** [`.agents/skills/vc-textbook-rag`](.agents/skills/vc-textbook-rag/SKILL.md).
 
 * **Prohibido responder exclusivamente con memoria paramétrica:** No alucines definiciones ni resumas de memoria cuando la literatura de referencia está indexada en el repositorio.
-* **Consulta semántica previa:** Antes de formular una respuesta técnica, ejecuta la búsqueda semántica mediante el script de la skill:
+* **Recuperación previa:** Antes de formular una respuesta técnica, localiza las fuentes mediante el script de la skill. Puedes usar `--mode vector`, `--mode bm25` o `--mode both`:
   ```bash
   uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "<consulta en español o inglés>" --top-k 4 --json
   ```
@@ -74,7 +74,7 @@ Para responder a **cualquier pregunta conceptual, teórica, algorítmica, matem�
   ```bash
   uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "filtro bilateral" --book szeliski --json
   ```
-* **Inspección de archivos fuente:** Cuando el RAG devuelva fragmentos relevantes, utiliza las herramientas de lectura de archivos (`view_file`) sobre la ruta relativa devuelta en `file_path` (por ejemplo, `docs_clase/textBook/Szeliski/...`) para acceder al capítulo completo, figuras asociadas y demostraciones matemáticas íntegras.
+* **Lectura obligatoria de fuentes:** Lee los archivos originales indicados por `file_path` con una herramienta disponible. Deduplica lecturas entre `embeddings` y `bm25`, conservando sus encabezados relevantes. Sigue enlaces internos cuando aporten definiciones, hipótesis o demostraciones necesarias; resuelve rutas relativas desde el archivo origen y evita ciclos. Inspecciona imágenes de fórmulas o figuras cuando hagan falta. Los fragmentos de búsqueda no sustituyen la lectura de fuentes.
 
 ---
 
@@ -118,15 +118,15 @@ flowchart TD
     C --> D{¿Resultados Suficientes?}
     D -- No --> E[Reformular consulta o ampliar --top-k]
     E --> C
-    D -- Sí --> F[Inspeccionar archivo modular con view_file si se requiere contexto]
+    D -- Sí --> F[Leer fuentes originales y enlaces internos relevantes]
     F --> G[Sintetizar respuesta con rigor matemático y formato Obsidian]
     G --> H[Incluir sección obligatoria de Referencias Bibliográficas con Wikilinks]
     H --> I[Entregar respuesta al usuario]
 ```
 
 1. **Recepción e Identificación:** Extraer las entidades matemáticas y algorítmicas clave tanto en español como en inglés (p. ej. *filtro bilateral* $\leftrightarrow$ *bilateral filter*, *geometría epipolar* $\leftrightarrow$ *epipolar geometry*).
-2. **Consulta Vectorial:** Ejecutar `query.py` con `--top-k 4 --json` a través de `uv run`.
-3. **Profundización Documental:** Si los fragmentos devueltos requieren mayor contexto (deducciones paso a paso, gráficas o tablas), examinar el archivo Markdown modular mediante `view_file`.
+2. **Recuperación:** Ejecutar `query.py` con `--mode vector|bm25|both --top-k 4 --json`. En BM25, usar términos técnicos ingleses para libros ingleses y preservar nombres propios y siglas; para material español, conservar también términos españoles. `--lexical-query` permite separar la consulta léxica de la pregunta semántica. Consultar la skill para comandos concretos.
+3. **Lectura y relación de fuentes:** Leer los archivos recuperados antes de sintetizar, incluyendo las secciones necesarias y sus enlaces internos relevantes. Registrar qué fuentes se han consultado; citar solo fuentes leídas. Si la ruta exacta ya se conoce, leer directamente el archivo.
 4. **Redacción según el Canal (Apuntes vs. GitHub/PRs vs. Chat):**
    * **En apuntes del Vault (`Tema 1/` a `Tema 5/`):** Usar sintaxis nativa de Obsidian (KaTeX con leyenda en callout `> [!info]`, callouts en minúsculas como `[!info]`, `[!tip]`, `[!example]`, diagramas Mermaid, y **Wikilinks nativos de Obsidian `[[...]]`** para enlaces internos y bibliografía).
    * **En descripciones de PRs, Issues y comentarios en GitHub:** Usar exclusivamente GitHub Flavored Markdown (GFM Alerts: `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) y **enlaces Markdown estándar relativos `[Texto](ruta/relativa)`**. Nunca usar Wikilinks `[[...]]` en GitHub.
@@ -198,3 +198,26 @@ Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el con
   ```bash
   uv run --with lancedb,fastembed,pyyaml python3 .agents/skills/vc-textbook-rag/scripts/build_index.py --force
   ```
+
+
+### Recuperación BM25 y doble búsqueda
+
+Flujo: **Pregunta → buscar archivos relevantes (vector/BM25/ambos) → leerlos y seguir enlaces pertinentes → responder con referencias**.
+
+```bash
+# Preparación inicial sobre el índice existente, sin recalcular embeddings
+uv run --with lancedb,pyyaml python3 .agents/skills/vc-textbook-rag/scripts/build_index.py --fts-only
+
+# Solo búsqueda léxica, sin cargar el modelo
+uv run --with lancedb python3 .agents/skills/vc-textbook-rag/scripts/query.py "Harris corner detector" --mode bm25 --json
+
+# Ambos motores, con listas independientes
+uv run --with lancedb,fastembed python3 .agents/skills/vc-textbook-rag/scripts/query.py "detector de esquinas Harris" --mode both --lexical-query "Harris corner detector" --json
+```
+
+La salida JSON contiene `query`, `mode`, `lexical_query`, `embeddings` y `bm25`. Sustituye la antigua clave `results`. `--top-k` limita fragmentos por motor; las listas pueden compartir archivos. Las distancias vectoriales y puntuaciones BM25 no son probabilidades ni son comparables entre motores. La preparación BM25 usa el texto ya almacenado; cambios en documentos requieren reconstruir el índice completo.
+
+### Referencias de implementación
+
+- **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [buscador](.agents/skills/vc-textbook-rag/scripts/query.py), [indexador](.agents/skills/vc-textbook-rag/scripts/build_index.py).
+- **LanceDB contributors**. *LanceDB Python API*, creación de índices FTS y búsqueda textual: [documentación oficial](https://lancedb.github.io/lancedb/python/python/).
