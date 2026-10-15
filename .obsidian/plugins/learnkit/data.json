@@ -17,8 +17,8 @@
       "showLaunchNoticeModal": true,
       "enableReadingStyles": true,
       "prettifyCards": "accent",
-      "syncPrivileges": "off",
-      "syncPrivilegesChoiceVersion": 0
+      "syncPrivileges": "simple-safe",
+      "syncPrivilegesChoiceVersion": 1
     },
     "study": {
       "showInfoByDefault": false,
