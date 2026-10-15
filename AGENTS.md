@@ -6,7 +6,9 @@ Este archivo define el contexto, la estructura del proyecto y las **directivas d
 
 ## 1. Descripción del Repositorio
 
-**VC_APUNTES** es un repositorio colaborativo y *Vault* de [Obsidian](https://obsidian.md/) diseñado para la asignatura de **Visión por Computador** (Grado / Máster en Informática, UGR).
+**VC_APUNTES** es un repositorio personal y *Vault* de [Obsidian](https://obsidian.md/) diseñado para la asignatura de **Visión por Computador** (Grado / Máster en Informática, UGR). Incluye autoevaluación mediante tarjetas LearnKit integradas en los apuntes.
+
+El flujo de Git es personal: se puede trabajar en la rama actual; las ramas adicionales y las Pull Requests son opcionales. Al crear commits, revisar el diff y seleccionar explícitamente los archivos del encargo, conservando los cambios ajenos. No hacer push ni abrir una PR salvo que forme parte de la petición del usuario.
 
 El propósito del repositorio es doble:
 1. **Vault de Apuntes de Alta Calidad:** Albergar apuntes teóricos y prácticos rigurosos, explicados de forma intuitiva, con fórmulas matemáticas en KaTeX, leyendas explicativas, diagramas Mermaid y bloques de notas (*callouts* de Obsidian).
@@ -22,7 +24,7 @@ VC_APUNTES/
 ├── AGENTS.md                         # Directivas y contexto para agentes de IA
 ├── CLAUDE.md                         # Directivas específicas para entornos Claude (este archivo)
 ├── README.md                         # Portada y guía general del vault
-├── CONTRIBUTING.md                   # Normas de colaboración y estilo para estudiantes
+├── CONTRIBUTING.md                   # Guía de mantenimiento personal, estilo y tarjetas
 ├── setup.sh                          # Script de inicialización automatizada en un solo paso
 │
 ├── Tema 1/ ... Tema 5/               # Apuntes estructurados de la asignatura en Obsidian
@@ -162,6 +164,7 @@ Cuando el agente redacte o edite notas en `Tema 1/` ... `Tema 5/`, debe seguir l
 * **Leyenda Matemática Obligatoria:** Tras toda fórmula principal, se debe incluir una leyenda explicando cada término:
   * En **apuntes**: bloque callout de Obsidian `> [!info] Leyenda Matemática`.
   * En **chat / PRs**: alerta GitHub `> [!NOTE]` seguido de `> **Leyenda Matemática**`.
+  * En **tarjetas LearnKit**: todos los símbolos deben quedar definidos en la pregunta, respuesta o campo `I`; no es obligatorio repetir un callout de leyenda. La pregunta debe incluir los datos necesarios para resolverla sin revelar la respuesta.
   ```markdown
   $$ I_B(x) = \frac{1}{W_p} \sum_{x_i \in \Omega} I(x_i) f_r(\|I(x_i) - I(x)\|) g_s(\|x_i - x\|) $$
 
@@ -183,6 +186,7 @@ Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el con
 
 ### C. Diagramas Mermaid
 * No insertar imágenes binarias si el concepto puede explicarse con un diagrama `mermaid` (`graph TD`, `flowchart LR`, etc.).
+* En tarjetas de reconocimiento, localización u oclusión visual se permiten imágenes cuando la imagen sea parte del ejercicio. Reutilizar recursos adecuados del vault y citar su procedencia; comprobar su visualización en LearnKit.
 
 ### D. Formato de Enlaces según el Entorno (Obsidian vs. GitHub vs. Chat)
 
@@ -196,7 +200,42 @@ Utilizar la sintaxis nativa de callouts para estructurar pedagógicamente el con
 
 ---
 
-## 6. Comandos de Mantenimiento y Utilidades
+## 6. Creación y mantenimiento de tarjetas LearnKit
+
+### A. Ubicación y alcance
+
+* Añadir las tarjetas a una sección `## Autoevaluación — LearnKit` de cada apunte, después del contenido y los enlaces relacionados y antes de las referencias bibliográficas finales.
+* Cada nota constituye un mazo y las carpetas agrupan mazos. Usar grupos jerárquicos en `G` con la convención `VC/Tema N/Subtema`; los grupos permiten filtrar y no sustituyen a los mazos.
+* Los documentos de ejercicios pueden contener tarjetas. Conservar los problemas y exámenes completos para practicar; dividir problemas largos en preguntas sobre pasos o decisiones cuando resulte útil. No atribuir procedencia de examen a preguntas creadas para autoevaluación.
+* Limitar el trabajo a los temas y archivos solicitados. No convertir automáticamente todo el vault ni fijar cuotas de tarjetas que obliguen a repetir contenido.
+
+### B. Sintaxis y configuración
+
+* Usar el formato canónico de LearnKit: `Q`/`A` para preguntas abiertas, `CQ` para clozes, `MCQ`/`A`/`O` para tests y `OQ` con filas numeradas para ordenación. `T` es opcional; `I` recoge explicación y referencia; `G` recoge los grupos.
+* El delimitador acordado es `|`. Comprobar la configuración instalada antes de escribir tarjetas; no cambiar globalmente el delimitador de tarjetas existentes sin una migración explícita.
+* Escribir los bloques de tarjetas como texto normal, fuera de bloques de código, tablas o callouts. Los ejemplos de sintaxis en documentación técnica deben estar dentro de bloques de código para evitar su detección.
+* Usar wikilinks para referencias internas. Preferir enlaces sin alias dentro de los campos para evitar barras adicionales; validar los casos con tablas, fórmulas o enlaces que contengan `|`.
+* Para el flujo canónico se recomienda `Simple` en los permisos de sincronización. Revisar el modo antes de sincronizar: `Off` bloquea la operación y los modos `Full` pueden detectar abreviaturas o modificar otros bloques. No cambiar ajustes globales de forma incidental.
+* La sincronización de LearnKit actualiza su base de estudio; no es una sincronización de Git ni entre dispositivos. Conservar los identificadores `^learnkit-…` existentes. Dejar que el plugin genere los nuevos; no inventarlos ni editar directamente su base de datos o el historial.
+
+### C. Fuentes y calidad pedagógica
+
+* Aplicar a las tarjetas las directivas de RAG y lectura de fuentes. Los apuntes personales y la generación con IA no sustituyen la comprobación bibliográfica.
+* Cada tarjeta debe incluir en `I` una referencia concreta a la fuente o al apartado del apunte que la documenta. Mantener al final de la nota las referencias formales completas; no repetir toda la bibliografía en cada tarjeta.
+* Formular una pregunta evaluable por tarjeta, con respuesta breve y suficiente. Reservar `I` para explicaciones complementarias y evitar pistas involuntarias en títulos, opciones o contexto visible.
+* Indicar autor cuando una taxonomía dependa de él, y fecha o contexto cuando una afirmación sea temporal. Distinguir hechos, hipótesis, opiniones y anécdotas; no memorizar generalizaciones sin respaldo.
+* Priorizar preguntas abiertas, comparaciones y aplicación a casos. Usar clozes, tests, tarjetas inversas u ordenación solo cuando aporten valor. En tests, comprobar las respuestas correctas y justificar los distractores cuando sea necesario.
+* Aplicar la adaptación de leyendas matemáticas de la sección 5.A y la excepción para ejercicios visuales de 5.C. No asumir que Mermaid o los callouts se renderizan igual dentro del visor de tarjetas.
+* Al corregir teoría, revisar las tarjetas relacionadas. Si la verificación exige una corrección localizada del apunte, identificarla en el resumen de cambios.
+
+### D. Validación y entrega
+
+* Para un formato nuevo, comprobar primero una muestra representativa antes de extenderlo a un tema completo.
+* Revisar campos obligatorios, delimitadores, enlaces, fuentes, duplicados, cobertura y correspondencia entre pregunta y respuesta. No generar ni modificar progreso para simular una validación.
+* Comprobar en Obsidian la detección, presentación y revisión de una muestra de cada tipo, cuando se disponga de acceso. Distinguir expresamente la validación de archivos de la validación visual y funcional; si esta última no se puede realizar, indicarlo.
+* Informar de los archivos modificados, tarjetas añadidas, correcciones de contenido y comprobaciones efectuadas. No incluir cambios ajenos al encargo en los commits.
+
+## 7. Comandos de Mantenimiento y Utilidades
 
 * **Ejecutar servidor MCP directamente:**
   ```bash
@@ -236,3 +275,4 @@ La salida JSON contiene `query`, `mode`, `lexical_query`, `embeddings` y `bm25`.
 
 - **VC_APUNTES**. *Recuperación y lectura de fuentes*: [skill](.agents/skills/vc-textbook-rag/SKILL.md), [buscador](.agents/skills/vc-textbook-rag/scripts/query.py), [servidor MCP](.agents/skills/vc-textbook-rag/scripts/server.py), [indexador](.agents/skills/vc-textbook-rag/scripts/build_index.py).
 - **LanceDB contributors**. *LanceDB Python API*, creación de índices FTS y búsqueda textual: [documentación oficial](https://lancedb.github.io/lancedb/python/python/).
+- **Guy, William y colaboradores** (2026). *LearnKit Documentation*. Secciones [Creating Flashcards](https://ctrlaltwill.github.io/LearnKit/Creating-Flashcards/), [Decks & Organisation](https://ctrlaltwill.github.io/LearnKit/Decks-%26-Organisation/), [Syncing](https://ctrlaltwill.github.io/LearnKit/Syncing/) y [Custom Delimiters](https://ctrlaltwill.github.io/LearnKit/Custom-Delimiters/). Documentación web sin paginación; comprobar su correspondencia con la versión instalada.
